@@ -16,8 +16,24 @@ const userSchema = new mongoose.Schema(
 		},
 		password: {
 			type: String,
-			required: [true, "Password is required"],
+			required: function() {
+				// Password is only required if not using OAuth
+				return !this.googleId && !this.githubId;
+			},
 			minlength: [6, "Password must be at least 6 characters long"],
+		},
+		googleId: {
+			type: String,
+			unique: true,
+			sparse: true, // allows multiple null values
+		},
+		githubId: {
+			type: String,
+			unique: true,
+			sparse: true,
+		},
+		avatar: {
+			type: String,
 		},
 		cartItems: [
 			{

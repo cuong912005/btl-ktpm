@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { LogIn, Mail, Lock, ArrowRight, Loader } from "lucide-react";
 import { useUserStore } from "../stores/useUserStore";
+import OAuthButtons from "../components/OAuthButtons";
 
 const LoginPage = () => {
 	const [email, setEmail] = useState("");
@@ -100,6 +101,8 @@ const LoginPage = () => {
 							)}
 						</button>
 					</form>
+
+					<OAuthButtons />
 
 					<p className='mt-8 text-center text-sm text-gray-400'>
 						Not a member?{" "}

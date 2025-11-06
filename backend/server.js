@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import path from "path";
+import passport from "./lib/passport.js";
 
 import client from "prom-client";
 
@@ -35,6 +36,9 @@ app.get("/metrics", async (req, res) => {
 
 app.use(express.json({ limit: "10mb" })); // allows you to parse the body of the request
 app.use(cookieParser());
+
+// Initialize Passport
+app.use(passport.initialize());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);

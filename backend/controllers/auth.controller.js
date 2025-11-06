@@ -142,3 +142,27 @@ export const getProfile = async (req, res) => {
 		res.status(500).json({ message: "Server error", error: error.message });
 	}
 };
+
+// OAuth Success Handler
+export const oauthSuccess = async (req, res) => {
+	try {
+		// Generate tokens for OAuth user
+		const { accessToken, refreshToken } = generateTokens(req.user._id);
+		await storeRefreshToken(req.user._id, refreshToken);
+		setCookies(res, accessToken, refreshToken);
+
+		// Redirect to frontend with success
+		const frontendURL = process.env.FRONTEND_URL || "http://localhost:5173";
+		res.redirect(`${frontendURL}/oauth/success`);
+	} catch (error) {
+		console.log("Error in oauthSuccess controller", error.message);
+		const frontendURL = process.env.FRONTEND_URL || "http://localhost:5173";
+		res.redirect(`${frontendURL}/oauth/error`);
+	}
+};
+
+// OAuth Failure Handler
+export const oauthFailure = (req, res) => {
+	const frontendURL = process.env.FRONTEND_URL || "http://localhost:5173";
+	res.redirect(`${frontendURL}/oauth/error`);
+};
