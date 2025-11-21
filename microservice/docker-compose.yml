@@ -164,7 +164,7 @@ services:
 
   # Kong Migration - Initialize database
   kong-migration:
-    image: kong:3.4-alpine
+    image: kong:3.3.0-alpine
     container_name: kong-migration
     command: kong migrations bootstrap
     environment:
@@ -182,21 +182,17 @@ services:
 
   # Kong API Gateway
   kong:
-    image: kong:3.4-alpine
+    image: kong:3.3.0-alpine
     container_name: kong
     environment:
-      KONG_DATABASE: postgres
-      KONG_PG_HOST: kong-database
-      KONG_PG_USER: kong
-      KONG_PG_PASSWORD: kong
-      KONG_PG_DATABASE: kong
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: /usr/local/kong/declarative/kong.yml
       KONG_PROXY_ACCESS_LOG: /dev/stdout
       KONG_ADMIN_ACCESS_LOG: /dev/stdout
       KONG_PROXY_ERROR_LOG: /dev/stderr
       KONG_ADMIN_ERROR_LOG: /dev/stderr
       KONG_ADMIN_LISTEN: 0.0.0.0:8001
       KONG_ADMIN_GUI_URL: http://localhost:8002
-      KONG_DECLARATIVE_CONFIG: /usr/local/kong/declarative/kong.yml
     ports:
       - "8000:8000"  # Proxy HTTP
       - "8443:8443"  # Proxy HTTPS
@@ -207,11 +203,6 @@ services:
       - ./kong.yml:/usr/local/kong/declarative/kong.yml:ro
     networks:
       - microservices-network
-    depends_on:
-      kong-database:
-        condition: service_healthy
-      kong-migration:
-        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "kong", "health"]
       interval: 10s
@@ -234,6 +225,8 @@ services:
       - REDIS_URL=redis://redis:6379
       - KAFKA_BROKERS=kafka:29092
       - JWT_SECRET=your-super-secret-jwt-key-change-in-production
+      - ACCESS_TOKEN_SECRET=your-super-secret-jwt-key-change-in-production
+      - REFRESH_TOKEN_SECRET=your-super-secret-refresh-key-change-in-production
       - JWT_ACCESS_EXPIRY=15m
       - JWT_REFRESH_EXPIRY=7d
       - GOOGLE_CLIENT_ID=your-google-client-id
@@ -421,15 +414,18 @@ services:
   worker-service:
     build: ./services/worker-service
     container_name: worker-service
+    ports:
+      - "3006:3006"
     environment:
       - NODE_ENV=development
+      - PORT=3006
       - KAFKA_BROKERS=kafka:29092
+      - KAFKA_GROUP_ID=worker-service-group
       - MONGO_URI=mongodb://mongodb:27017/worker_db
-      # Email configuration
-      - SMTP_HOST=smtp.gmail.com
-      - SMTP_PORT=587
-      - SMTP_USER=your-email@gmail.com
-      - SMTP_PASS=your-app-password
+      # SendGrid configuration
+      - SENDGRID_API_KEY=your-sendgrid-api-key
+      - SENDGRID_FROM_EMAIL=noreply@ecommerce.com
+      - SENDGRID_FROM_NAME=E-Commerce Store
       # Service URLs for fetching data
       - ORDER_SERVICE_URL=http://order-service:3005
       - AUTH_SERVICE_URL=http://auth-service:3001
